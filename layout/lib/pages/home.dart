@@ -14,6 +14,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:layout/pages/detail.dart'; // โซน import
+import 'package:http/http.dart' as http; // import http
+import 'dart:async';
 
 class HomePage extends StatefulWidget {
   // classหลัก
@@ -36,23 +38,24 @@ class _HomePageState extends State<HomePage> {
           // (30) คลิกดวงไฟหน้า ListView แล้วกด Wrap with padding
           padding: const EdgeInsets.all(13),
           child: FutureBuilder(
-            builder: (context, snapshot) {
-              var data = json.decode(snapshot.data
-                  .toString()); // (62) ใส่บรรทัดนี้เสร็จให้กดดวงไฟเพื่อ import (dartconvert)แล้วใส่ snapshot.data.toString();
+            builder: (context, AsyncSnapshot snapshot) {
+              // var data = json.decode(snapshot.data
+              //.toString()); // (62) ใส่บรรทัดนี้เสร็จให้กดดวงไฟเพื่อ import (dartconvert)แล้วใส่ snapshot.data.toString();
               return ListView.builder(
                 itemBuilder: (BuildContext context, int index) {
                   return MyBox(
-                      data[index]['title'],
-                      data[index]['subtitle'],
-                      data[index]['image_url'],
-                      data[index][
+                      snapshot.data[index]['title'],
+                      snapshot.data[index]['subtitle'],
+                      snapshot.data[index]['image_url'],
+                      snapshot.data[index][
                           'detail']); // (67) ใส่ return MyBox // (77) ใส่ data detail เพิ่ม
                 }, // (66) ใส่ Buildcontext context, int index {}
-                itemCount: data.length,
+                itemCount: snapshot.data.length,
               ); // (63) ใส่ return ListView.builder(); //(67) ใส่ itemcount: data.lenght หลังปีกกา(ใส่คอมม่าหลังปีกกาด้วย)
             },
-            future: DefaultAssetBundle.of(context).loadString(
-                'assets/data.json'), // (64) ใส่ future ใต้ปีกกาของ builder snapshot *future เป็นฟังชันพิเศษที่จะเรียก file jsonมาอ่าน //(65) จากนั้นไปที่ pubspec
+            future: getData(),
+            //future: DefaultAssetBundle.of(context).loadString(
+            //'assets/data.json'), // (64) ใส่ future ใต้ปีกกาของ builder snapshot *future เป็นฟังชันพิเศษที่จะเรียก file jsonมาอ่าน //(65) จากนั้นไปที่ pubspec
           ) // (61) ใส่ FutureBuilder(builder: (context, snapshot){},)
           //ListView(
           //   children: [
@@ -147,5 +150,15 @@ class _HomePageState extends State<HomePage> {
         ], // (50) สร้างหน้า pages ใหม่ ไปที่ Folder pages แล้ว new file
       ),
     );
+  }
+
+  // async เป็นฟังก์ชันที่ใช้เวลาในการ download
+  Future getData() async {
+    // https://raw.githubusercontent.com/B1ackmonday/BasicAPI/main/data.json
+    var url = Uri.https(
+        'raw.githubusercontent.com', '/B1ackmonday/BasicAPI/main/data.json');
+    var response = await http.get(url);
+    var result = json.decode(response.body);
+    return result;
   }
 }
